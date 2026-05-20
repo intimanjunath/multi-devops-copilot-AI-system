@@ -1,0 +1,95 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sre-agent"
+version = "1.0.0"
+description = "Multi-agent SRE assistant for infrastructure troubleshooting"
+authors = [{name = "SRE Team", email = "sre@company.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    # LangChain + LangGraph
+    "langgraph>=0.5.4",
+    "langchain-core>=0.3.72",
+    "langchain-groq>=0.1.0",
+    "langchain-ollama>=0.0.1",
+    "langchain-community>=0.0.27",
+    "langchain-mcp-adapters>=0.1.9",
+    "langsmith[otel]",
+    "mcp>=0.1.0",
+    # Web framework
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.6.3",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27.0",
+    # Database
+    "sqlalchemy>=2.0.28",
+    "asyncpg>=0.29.0",
+    "psycopg2-binary>=2.9.9",
+    "alembic>=1.13.1",
+    # Auth
+    "passlib[bcrypt]>=1.7.4",
+    "python-jose[cryptography]>=3.3.0",
+    "bcrypt>=4.1.2",
+    "email-validator>=2.1.1",
+    # Infrastructure
+    "redis>=5.0.3",
+    "python-dotenv>=1.0.1",
+    "prometheus-fastapi-instrumentator>=6.1.0",
+    # LLM providers (optional but must be listed for import to succeed)
+    "langchain-openai>=0.1.0",
+    "langchain-google-genai>=2.0.0",
+    "qdrant-client>=1.9.0",
+    "fastembed>=0.3.0",
+    "greenlet>=3.3.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "mypy>=1.5.0",
+    "flake8>=6.0.0",
+    "bandit>=1.7.0",
+    "pre-commit>=3.0.0",
+    "ruff>=0.1.0"
+]
+bench = [
+    # httpx is already a core dependency — no extra installs needed.
+    # This group exists as a marker and for any future bench-only additions.
+    "pytest-benchmark>=4.0.0",
+]
+
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sre_agent*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

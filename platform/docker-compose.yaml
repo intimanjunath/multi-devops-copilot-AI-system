@@ -1,0 +1,160 @@
+# =============================================================================
+# SaaS Platform Stack — API, Dashboard, AI Agent, and infrastructure services
+#
+# All Dockerfiles for this stack live in platform/.
+# All AI reasoning (LLM, LangGraph, OODA loop) happens here.
+# Tool calls are dispatched directly to the edge MCP stack on host ports.
+#
+# Usage:  cd platform && docker compose up -d --build
+# =============================================================================
+
+services:
+  # ============================================
+  # Infrastructure Services
+  # ============================================
+
+  redis:
+    image: redis:7-alpine
+    container_name: sre-redis
+    hostname: redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      sre-network:
+        aliases:
+          - redis
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: sre-postgres
+    hostname: postgres
+    env_file:
+      - ../.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      sre-network:
+        aliases:
+          - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sre_user} -d ${POSTGRES_DB:-sre_platform}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: sre-qdrant
+    hostname: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      sre-network:
+        aliases:
+          - qdrant
+    restart: unless-stopped
+
+  # ollama:                        # Commented out — using Groq instead
+  #   image: ollama/ollama:latest
+  #   container_name: sre-ollama
+  #   hostname: ollama
+  #   ports:
+  #     - "11435:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   networks:
+  #     sre-network:
+  #       aliases:
+  #         - ollama
+  #   restart: unless-stopped
+
+  # ============================================
+  # SRE Agent API (Control Plane + AI Brain)
+  # ============================================
+
+  sre-agent-api:
+    platform: linux/amd64
+    build:
+      context: ../
+      dockerfile: platform/Dockerfile
+    container_name: sre-agent-api
+    hostname: sre-agent-api
+    command: >
+      sh -c "uv run alembic upgrade head && uv run python backend/seed.py && exec uv run uvicorn sre_agent.agent_runtime:app --host 0.0.0.0 --port 8080"
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../.env
+    environment:
+      # Topological fixed values that shouldn't be overridden via user .env
+      - AGENT_MODE=api
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_URL=http://qdrant:6333
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+
+    networks:
+      sre-network:
+        aliases:
+          - sre-agent
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
+
+  # ============================================
+  # Dashboard (Next.js UI)
+  # ============================================
+
+  dashboard:
+    platform: linux/amd64
+    build:
+      context: ../dashboard
+      dockerfile: ../platform/Dockerfile.dashboard
+    container_name: sre-dashboard
+    ports:
+      - "3002:3000"
+    environment:
+      - API_URL=http://sre-agent-api:8080
+    depends_on:
+      - sre-agent-api
+    networks:
+      sre-network:
+        aliases:
+          - dashboard
+
+networks:
+  sre-network:
+    driver: bridge
+    name: sre-platform-network
+
+volumes:
+  redis_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  # ollama_data:                   # Commented out — using Groq instead
+  #   driver: local
+  postgres_data:
+    driver: local

@@ -1,0 +1,121 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.whl
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+sre_agent.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+cover/
+htmlcov/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+.conversation_state.json
+.langgraph_conversation_state.json
+.multi_agent_conversation_state.json
+.memory_id
+*.log
+logs/
+reports/
+
+# Docker
+.dockerignore
+
+# Local config
+config.yaml
+!config.yaml.example
+
+# Edge MCP env (contains real tokens)
+edge_mcp_servers/.env
+
+# Dashboard / Next.js
+/dashboard/node_modules/
+/dashboard/.pnp
+/dashboard/.pnp.*
+/dashboard/.yarn/*
+!/dashboard/.yarn/patches
+!/dashboard/.yarn/plugins
+!/dashboard/.yarn/releases
+!/dashboard/.yarn/versions
+/dashboard/coverage/
+/dashboard/.next/
+/dashboard/out/
+/dashboard/build/
+/dashboard/.DS_Store
+/dashboard/*.pem
+/dashboard/npm-debug.log*
+/dashboard/yarn-debug.log*
+/dashboard/yarn-error.log*
+/dashboard/.pnpm-debug.log*
+/dashboard/.env*
+/dashboard/.vercel
+/dashboard/*.tsbuildinfo
+/dashboard/next-env.d.ts
+
+# Temporary files
+*.tmp
+*.temp
+.gemini/
+gha-creds-*.json
+.claude/

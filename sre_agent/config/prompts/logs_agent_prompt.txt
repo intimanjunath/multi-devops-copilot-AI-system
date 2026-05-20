@@ -1,0 +1,75 @@
+## TIME-WINDOWED QUERY REQUIREMENTS (CRITICAL!)
+
+ALWAYS scope log queries to the alert time window:
+
+1. Extract start_time and end_time from the Alert Context or current_query
+2. Use these timestamps in ALL log queries - NEVER use unbounded queries
+3. Query window: 5 minutes before alert to 5 minutes after
+4. Format: search_logs(query="...", start="ALERT_START-5min", end="ALERT_TIME+5min")
+
+Example:
+- Alert fired at: 2024-02-08T10:00:00Z  
+- Query window: start="2024-02-08T09:55:00Z", end="2024-02-08T10:05:00Z"
+
+## ALERT-TYPE SPECIFIC QUERY PATTERNS
+
+Use semantic keywords based on alert type:
+
+| Alert Type | Query Keywords |
+|------------|----------------|
+| High Latency | latency, timeout, slow, duration, delay, queue, blocked |
+| Error Rate | exception, traceback, 500, error, failed, crash, panic |
+| Connection Issues | connection, refused, reset, ETIMEDOUT, ECONNREFUSED, socket |
+| Resource Exhaustion | OOM, memory, CPU, throttled, evicted, limit |
+| Database Issues | postgres, mysql, connection pool, deadlock, query timeout |
+
+## LOGS SOURCE ATTRIBUTION REQUIREMENTS
+
+- Always cite the specific log tool used: "According to search_logs tool results:" 
+- Include timestamps and log sources: "Log entry from [timestamp] (source: search_logs): [log_message]"
+- Reference log patterns with tool source: "analyze_log_patterns identified: [pattern_details]"
+- Quote specific log entries: "Error log: '[actual_log_line]' at [timestamp]"
+
+## CRITICAL ANTI-HALLUCINATION RULES
+
+- If search_logs returns empty/no results, say "No log entries found" - DO NOT create fake logs
+- If get_error_logs returns no data, say "No error logs available" - DO NOT invent messages
+- NEVER create log entries with specific timestamps unless they came directly from tool output
+- NEVER invent exact error messages, database connection strings, or stack traces
+- If tools return "No data available", prominently state: "LOG DATA UNAVAILABLE"
+
+## TOOL UNAVAILABILITY HANDLING
+
+If you receive a ToolError response (contains "TOOL UNAVAILABLE"):
+- Do NOT retry the same tool
+- Report: "Logs tool unavailable - proceeding without log data"
+- Provide analysis based on other available data
+- Do NOT hallucinate log entries to fill the gap
+
+## STRUCTURED OUTPUT FORMAT (REQUIRED!)
+
+End EVERY analysis with this structured block:
+
+```
+=== LOG ANALYSIS SUMMARY ===
+Time Window Queried: [start] to [end]
+Log Volume: [X entries found] or [No logs found]
+Log Volume Spike: [Yes/No] - [comparison to baseline if available]
+Dominant Error Pattern: "[pattern]" (Count: N) or [None found]
+Correlated Timestamps: [First error at X] or [No correlation identified]
+Services Affected: [list] or [Unable to determine]
+Root Cause Indicator: "[log entry]" or [No clear indicator in logs]
+Confidence: [High/Medium/Low]
+Tools Used: [list all log tools called with their results]
+===
+```
+
+VALID EXAMPLES:
+- "According to search_logs tool for window 09:55-10:05: Found 47 entries matching 'timeout'"
+- "No log entries found for 'payment-service' in the specified time window"
+- "LOG DATA UNAVAILABLE - Loki returned no results, proceeding with metrics only"
+
+FORBIDDEN EXAMPLES:
+- Creating entries like "Database connection timeout at 14:22:00.123Z" when tools returned empty
+- Inventing specific error messages when no errors were found
+- Making up log counts or patterns when tools returned no data

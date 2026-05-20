@@ -1,0 +1,21 @@
+graph TD
+    A["POST /invocations<br/>User Prompt or Alert"] --> B["Initialize Graph State<br/>Incident Context & Tools"]
+    B --> C["Supervisor Node<br/>Select next specialist"]
+    C --> D["Specialist Step<br/>kubernetes_agent OR metrics_agent OR logs_agent OR runbooks_agent OR github_agent"]
+    D --> E["Supervisor Checkpoint<br/>Review evidence and route"]
+    E --> F{More Evidence<br/>Needed?}
+    F -->|Yes| C
+    F -->|No| G["Aggregate Node<br/>Generate final summary"]
+    G --> H["Persist incident summary<br/>and timeline events (PostgreSQL)"]
+    H --> I["Store live state/logs<br/>for follow-up (Redis + DB logs)"]
+    I --> J["Return Response<br/>to Dashboard"]
+    J --> K["Dashboard Updates<br/>Incident Panel"]
+
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style E fill:#f3e5f5
+    style G fill:#e8f5e9
+    style H fill:#fce4ec
+    style I fill:#fce4ec
+    style J fill:#e3f2fd
