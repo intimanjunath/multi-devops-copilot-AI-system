@@ -6,6 +6,8 @@ The answer is yes.
 
 When a production alert fires, this system automatically investigates it. It pulls live data from Kubernetes, Prometheus, Loki, and GitHub in parallel, reasons over the evidence using a multi-agent LangGraph loop, and writes a full investigation transcript you can read, follow up on, and audit. Everything is persisted. Nothing gets lost after the incident closes.
 
+## YouTube link : https://youtu.be/sveEBodKCbs 
+
 ## System Architecture
 
 ### Layer Architecture
