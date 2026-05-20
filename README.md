@@ -28,11 +28,11 @@ The dashboard talks to the backend through Next.js rewrites. The agent runtime u
 - Edge MCP servers expose infrastructure as tools to the agent
 - Agent reasoning and persistence happen in the platform layer
 
-### Request-to-Investigation Flow
+### MCP Servers Overview and Integration
 
-![Agent Runtime Flow](docs/architecture/images/agent-runtime-flow.svg)
+![MCP Servers Overview](docs/architecture/images/mcp-servers-overview.png)
 
-When an alert fires or a user sends a follow-up question, the agent runtime spins up specialist agents in parallel to gather evidence, aggregates findings through a supervisor step, decides if more investigation is needed, and persists the final summary to the incident timeline.
+Five MCP tool servers expose live infrastructure to the agent — Kubernetes cluster state, Prometheus golden signals, Loki logs and traces, GitHub commits and pull requests, and Runbooks for playbook retrieval. Specialist agents call these servers via HTTP, get tool results back through the MCP Tool Bridge (`mcp_tool_wrapper.py`), and feed findings up to the Supervisor Node which aggregates evidence, routes decisions, and persists everything to the Incident Timeline in PostgreSQL. The LangGraph Agent Runtime (`multi_agent_langgraph.py`) orchestrates the full loop.
 
 ### Backend Data Model
 
